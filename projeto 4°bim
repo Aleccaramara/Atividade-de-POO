@@ -1,0 +1,291 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import re
+
+# Dicionário para armazenar os dados de login, senha e cadastro
+usuarios = {}
+
+def validar_telefone(telefone):
+    # Verifica se o telefone tem exatamente 11 dígitos numéricos
+    padrao_telefone = r"^\d{11}$"
+    if re.match(padrao_telefone, telefone):
+        return True
+    return False
+
+# Função para validar o CPF
+def validar_cpf(cpf):
+    # Verifica se o CPF tem o formato correto (XXX.XXX.XXX-XX)
+    padrao_cpf = r"^\d{3}\.\d{3}\.\d{3}-\d{2}$"
+    if re.match(padrao_cpf, cpf):
+        return True
+    return False
+
+# Função para salvar os dados no arquivo
+def salvar_em_arquivo(dados_cadastro):
+    try:
+        # Abre o arquivo em modo de anexação (append), criando o arquivo caso não exista
+        with open("cadastros.txt", "a") as f:
+            # Escreve os dados no formato desejado
+            f.write(f"Nome: {dados_cadastro['nome']}\n")
+            f.write(f"Email: {dados_cadastro['email']}\n")
+            f.write(f"Telefone: {dados_cadastro['telefone']}\n")
+            f.write(f"Sexo: {dados_cadastro['sexo']}\n")
+            f.write(f"Data de Nascimento: {dados_cadastro['data_nascimento']}\n")
+            f.write(f"CPF: {dados_cadastro['cpf']}\n")
+            f.write(f"Curso: {dados_cadastro['curso']}\n")
+            f.write("-" * 30 + "\n")  # Separador para cada cadastro
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao salvar os dados no arquivo.\n{e}")
+
+# Funções para a página de Cadastro
+def salvar_cadastro():
+    nome = entry_nome.get()
+    email = entry_email.get()
+    telefone = entry_telefone.get()
+    sexo = combo_sexo.get()
+    data_nascimento = entry_data.get()
+    cpf = entry_cpf.get()
+    curso = combo_curso.get()
+
+    # Validação do número de celular
+    if not validar_telefone(telefone):
+        messagebox.showwarning("Telefone inválido", "Por favor, insira um número de telefone válido com 11 dígitos (somente números).")
+        return
+
+    # Validação do CPF
+    if not validar_cpf(cpf):
+        messagebox.showwarning("CPF inválido", "Por favor, insira um CPF válido no formato XXX.XXX.XXX-XX.")
+        return
+
+    if not (nome and email and telefone and sexo and data_nascimento and cpf and curso):
+        messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+        return
+
+    # Armazenar os dados diretamente no dicionário 'usuarios' com o login do aluno como chave
+    dados_cadastro = {
+        "nome": nome,
+        "email": email,
+        "telefone": telefone,
+        "sexo": sexo,
+        "data_nascimento": data_nascimento,
+        "cpf": cpf,
+        "curso": curso
+    }
+
+    # Salvar os dados no arquivo
+    salvar_em_arquivo(dados_cadastro)
+
+    # Limpar campos de cadastro
+    limpar_campos()
+    # Criar a próxima página para criação de login e senha
+    abrir_criar_login(dados_cadastro)
+
+def limpar_campos():
+    entry_nome.delete(0, tk.END)
+    entry_email.delete(0, tk.END)
+    entry_telefone.delete(0, tk.END)
+    combo_sexo.set("")
+    entry_data.delete(0, tk.END)
+    entry_cpf.delete(0, tk.END)
+    combo_curso.set("")
+
+# Função para abrir a janela de login e senha após o cadastro
+def abrir_criar_login(dados_cadastro):
+    global janela_login
+    janela_login = tk.Toplevel(janela)
+    janela_login.title("Criar Login e Senha")
+    janela_login.geometry("300x200")
+
+    tk.Label(janela_login, text="Login:").pack(pady=5)
+    entry_login = tk.Entry(janela_login)
+    entry_login.pack(pady=5)
+
+    tk.Label(janela_login, text="Senha:").pack(pady=5)
+    entry_senha = tk.Entry(janela_login, show="*")
+    entry_senha.pack(pady=5)
+
+    def salvar_login():
+        login = entry_login.get()
+        senha = entry_senha.get()
+        if login and senha:
+            # Salvar login, senha e dados do aluno no dicionário 'usuarios'
+            usuarios[login] = {"senha": senha, "dados": dados_cadastro}
+            messagebox.showinfo("Cadastro Completo", "Aluno cadastrado com sucesso! Agora você pode fazer login.")
+            janela_login.destroy()  # Fecha a janela de login
+            abrir_login()
+        else:
+            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha o login e a senha.")
+    
+    tk.Button(janela_login, text="Confirmar", command=salvar_login).pack(pady=10)
+
+# Função para abrir a janela de login
+def abrir_login():
+    global janela_login_entrada
+    janela_login_entrada = tk.Toplevel(janela)
+    janela_login_entrada.title("Entrar")
+    janela_login_entrada.geometry("300x200")
+
+    tk.Label(janela_login_entrada, text="Login:").pack(pady=5)
+    entry_login_entrada = tk.Entry(janela_login_entrada)
+    entry_login_entrada.pack(pady=5)
+
+    tk.Label(janela_login_entrada, text="Senha:").pack(pady=5)
+    entry_senha_entrada = tk.Entry(janela_login_entrada, show="*")
+    entry_senha_entrada.pack(pady=5)
+
+    def verificar_login():
+        login = entry_login_entrada.get()
+        senha = entry_senha_entrada.get()
+        if login and senha:
+            if login in usuarios and usuarios[login]["senha"] == senha:
+                janela_login_entrada.destroy()  # Fecha a janela de login
+                abrir_dados_usuario(login)
+            else:
+                messagebox.showwarning("Login Inválido", "Login ou senha incorretos.")
+        else:
+            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha os campos de login e senha.")
+
+    tk.Button(janela_login_entrada, text="Entrar", command=verificar_login).pack(pady=10)
+
+# Função para abrir a página de dados do aluno
+def abrir_dados_usuario(login):
+    dados = usuarios[login]["dados"]
+
+    janela_dados = tk.Toplevel(janela)
+    janela_dados.title("Dados do Aluno")
+    janela_dados.geometry("400x400")
+
+    tk.Label(janela_dados, text=f"Nome: {dados['nome']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"Email: {dados['email']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"Telefone: {dados['telefone']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"Sexo: {dados['sexo']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"Data de Nascimento: {dados['data_nascimento']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"CPF: {dados['cpf']}").pack(pady=5)
+    tk.Label(janela_dados, text=f"Curso: {dados['curso']}").pack(pady=5)
+
+# Função para abrir a página de busca
+def abrir_busca():
+    global janela_busca
+    janela_busca = tk.Toplevel(janela)
+    janela_busca.title("Buscar Aluno")
+    janela_busca.geometry("400x300")
+
+    tk.Label(janela_busca, text="Digite o nome do aluno:").pack(pady=10)
+
+    entry_busca = tk.Entry(janela_busca)
+    entry_busca.pack(pady=5)
+
+    def buscar_aluno():
+        nome_busca = entry_busca.get().lower()
+        encontrado = False
+
+        for login, usuario in usuarios.items():
+            if nome_busca in usuario["dados"]["nome"].lower():
+                abrir_login_depois_da_busca(login)
+                janela_busca.destroy()
+                encontrado = True
+                break
+
+        if not encontrado:
+            messagebox.showinfo("Não encontrado", "Aluno não encontrado.")
+
+    tk.Button(janela_busca, text="Buscar", command=buscar_aluno).pack(pady=10)
+
+def sair_programa():
+    resposta = messagebox.askyesno("Confirmação", "Deseja realmente sair?")
+    if resposta:
+        janela.destroy()
+
+# Função para abrir login após encontrar o aluno
+def abrir_login_depois_da_busca(login):
+    global login_aluno
+    login_aluno = login
+
+    # Exibir a tela de login apenas depois de encontrar o aluno
+    janela_login_busca = tk.Toplevel(janela)
+    janela_login_busca.title("Entrar para ver os Dados")
+    janela_login_busca.geometry("300x200")
+
+    tk.Label(janela_login_busca, text="Login:").pack(pady=5)
+    entry_login_busca = tk.Entry(janela_login_busca)
+    entry_login_busca.pack(pady=5)
+
+    tk.Label(janela_login_busca, text="Senha:").pack(pady=5)
+    entry_senha_busca = tk.Entry(janela_login_busca, show="*")
+    entry_senha_busca.pack(pady=5)
+
+    def verificar_login_busca():
+        login = entry_login_busca.get()
+        senha = entry_senha_busca.get()
+
+        # Verificar se o login e a senha correspondem aos dados do aluno encontrado
+        if login == login_aluno and senha == usuarios[login]["senha"]:
+            janela_login_busca.destroy()
+            abrir_dados_usuario(login)
+        else:
+            messagebox.showwarning("Login Inválido", "Login ou senha incorretos.")
+
+    tk.Button(janela_login_busca, text="Entrar", command=verificar_login_busca).pack(pady=10)
+
+# Janela principal
+janela = tk.Tk()
+janela.title("Cadastro de Alunos")
+janela.geometry("600x500")
+
+# Título
+titulo = tk.Label(janela, text="Cadastro de Alunos", font=("Arial", 24))
+titulo.pack(pady=20)
+
+# Formulário de Cadastro
+frame_formulario = tk.Frame(janela)
+frame_formulario.pack(pady=10, padx=10, fill=tk.X)
+
+# Nome
+tk.Label(frame_formulario, text="Nome *").grid(row=0, column=0, sticky=tk.W)
+entry_nome = tk.Entry(frame_formulario)
+entry_nome.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+
+# Email
+tk.Label(frame_formulario, text="Email *").grid(row=1, column=0, sticky=tk.W)
+entry_email = tk.Entry(frame_formulario)
+entry_email.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
+
+# Telefone
+tk.Label(frame_formulario, text="Telefone *").grid(row=2, column=0, sticky=tk.W)
+entry_telefone = tk.Entry(frame_formulario)
+entry_telefone.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+
+# Sexo
+tk.Label(frame_formulario, text="Sexo *").grid(row=3, column=0, sticky=tk.W)
+combo_sexo = ttk.Combobox(frame_formulario, values=["Masculino", "Feminino", "Outros"])
+combo_sexo.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
+
+# Data de nascimento
+tk.Label(frame_formulario, text="Data de nascimento *").grid(row=0, column=2, sticky=tk.W)
+entry_data = tk.Entry(frame_formulario)
+entry_data.grid(row=0, column=3, padx=5, pady=5, sticky=tk.W)
+
+# CPF
+tk.Label(frame_formulario, text="CPF *").grid(row=1, column=2, sticky=tk.W)
+entry_cpf = tk.Entry(frame_formulario)
+entry_cpf.grid(row=1, column=3, padx=5, pady=5, sticky=tk.W)
+
+# Curso
+tk.Label(frame_formulario, text="Curso *").grid(row=2, column=2, sticky=tk.W)
+combo_curso = ttk.Combobox(frame_formulario, values=["INFO", "PJD", "EBM", "ADM"])
+combo_curso.grid(row=2, column=3, padx=5, pady=5, sticky=tk.W)
+
+# Botões principais
+frame_botoes = tk.Frame(janela)
+frame_botoes.pack(pady=10)
+
+sair_button = tk.Button(frame_botoes, text="SAIR", command=sair_programa, bg="tomato",fg="white", width=5)
+sair_button.grid(row=0, column=2, padx=10)
+
+botao_salvar = tk.Button(frame_botoes, text="SALVAR", bg="green", fg="white", command=salvar_cadastro)
+botao_salvar.grid(row=0, column=0, padx=10)
+
+botao_busca = tk.Button(frame_botoes, text="BUSCAR", bg="orange", fg="white", command=abrir_busca)
+botao_busca.grid(row=0, column=1, padx=10)
+
+janela.mainloop()
