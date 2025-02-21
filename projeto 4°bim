@@ -46,7 +46,7 @@ def salvar_cadastro():
 
     # Validação do número de celular
     if not validar_telefone(telefone):
-        messagebox.showwarning("Telefone inválido", "Por favor, insira um número de telefone válido com 11 dígitos (somente números).")
+        messagebox.showwarning("Telefone inválido", "Por favor, insira um número de telefone válido no formato (xx) xxxxx-xxxx")
         return
 
     # Validação do CPF
