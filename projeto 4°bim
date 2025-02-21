@@ -289,3 +289,7 @@ botao_busca = tk.Button(frame_botoes, text="BUSCAR", bg="orange", fg="white", co
 botao_busca.grid(row=0, column=1, padx=10)
 
 janela.mainloop()
+
+# Turma: INFO2V
+#Alunos: Alec Araújo, Larissa de Fátima, Ana Eloisa, Yasmin Carla
+#Disciplina: PEOO
