@@ -1,17 +1,14 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox
 import re
 
 # Dicionário para armazenar os dados de login, senha e cadastro
 usuarios = {}
 
 def validar_telefone(telefone):
-    # Verifica se o telefone tem exatamente 11 dígitos numéricos
-    padrao_telefone = r"^\d{11}$"
-    if re.match(padrao_telefone, telefone):
-        return True
-    return False
-
+    # Verifica se o telefone segue o formato (XX) XXXXX-XXXX
+    padrao_telefone = r"^\(\d{2}\) \d{5}-\d{4}$"
+    return bool(re.fullmatch(padrao_telefone, telefone))
 # Função para validar o CPF
 def validar_cpf(cpf):
     # Verifica se o CPF tem o formato correto (XXX.XXX.XXX-XX)
