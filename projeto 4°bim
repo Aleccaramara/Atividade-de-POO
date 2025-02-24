@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter.filedialog import asksaveasfilename  # Importando o filedialog
 import re
 
 # Dicionário para armazenar os dados de login, senha e cadastro
@@ -9,6 +10,7 @@ def validar_telefone(telefone):
     # Verifica se o telefone segue o formato (XX) XXXXX-XXXX
     padrao_telefone = r"^\(\d{2}\) \d{5}-\d{4}$"
     return bool(re.fullmatch(padrao_telefone, telefone))
+
 # Função para validar o CPF
 def validar_cpf(cpf):
     # Verifica se o CPF tem o formato correto (XXX.XXX.XXX-XX)
@@ -20,17 +22,20 @@ def validar_cpf(cpf):
 # Função para salvar os dados no arquivo
 def salvar_em_arquivo(dados_cadastro):
     try:
-        # Abre o arquivo em modo de anexação (append), criando o arquivo caso não exista
-        with open("cadastros.txt", "a") as f:
-            # Escreve os dados no formato desejado
-            f.write(f"Nome: {dados_cadastro['nome']}\n")
-            f.write(f"Email: {dados_cadastro['email']}\n")
-            f.write(f"Telefone: {dados_cadastro['telefone']}\n")
-            f.write(f"Sexo: {dados_cadastro['sexo']}\n")
-            f.write(f"Data de Nascimento: {dados_cadastro['data_nascimento']}\n")
-            f.write(f"CPF: {dados_cadastro['cpf']}\n")
-            f.write(f"Curso: {dados_cadastro['curso']}\n")
-            f.write("-" * 30 + "\n")  # Separador para cada cadastro
+        # Abre a caixa de diálogo para o usuário escolher onde salvar o arquivo
+        arquivo_salvar = asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")], title="Salvar Dados", initialfile="cadastros.txt")
+       
+        if arquivo_salvar:  # Verifica se o usuário escolheu um arquivo
+            # Abre o arquivo no caminho escolhido e salva os dados
+            with open(arquivo_salvar, "a") as f:
+                f.write(f"Nome: {dados_cadastro['nome']}\n")
+                f.write(f"Email: {dados_cadastro['email']}\n")
+                f.write(f"Telefone: {dados_cadastro['telefone']}\n")
+                f.write(f"Sexo: {dados_cadastro['sexo']}\n")
+                f.write(f"Data de Nascimento: {dados_cadastro['data_nascimento']}\n")
+                f.write(f"CPF: {dados_cadastro['cpf']}\n")
+                f.write(f"Curso: {dados_cadastro['curso']}\n")
+                f.write("-" * 30 + "\n")  # Separador para cada cadastro
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao salvar os dados no arquivo.\n{e}")
 
@@ -112,7 +117,7 @@ def abrir_criar_login(dados_cadastro):
             abrir_login()
         else:
             messagebox.showwarning("Campos obrigatórios", "Por favor, preencha o login e a senha.")
-    
+   
     tk.Button(janela_login, text="Confirmar", command=salvar_login).pack(pady=10)
 
 # Função para abrir a janela de login
